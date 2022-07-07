@@ -67,6 +67,42 @@ jobs:
             cd backend
             npm install
             npm run test
+  
+#Scan frontend for vulnerabilities
+  scan-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Code analysis frontend
+          command: |
+            cd frontend
+            npm install
+            #npm install oauth-sign@^0.9.0
+            npm audit --audit-level=critical
+
+#Scan backend for vulnerabilities
+  scan-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+    - checkout
+    - restore_cache:
+        keys: [backend-build]
+    - run:
+        name: Code analysis backend
+        command: |
+          cd backend
+          npm install
+          #npm install oauth-sign@^0.9.0
+          npm audit --audit-level=critical
+
+      # Checkout code from git
+      # Restore from cache
+      # Your job code here
 
 
 
@@ -80,5 +116,11 @@ workflows:
           requires:
             - build-frontend
       - test-backend:
+          requires:
+            - build-backend
+      - scan-frontend:
+          requires:
+            - build-frontend
+      - scan-backend:
           requires:
             - build-backend
