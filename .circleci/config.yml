@@ -1,11 +1,5 @@
 version: 2.1
 
-
-
-
-
-
-
 jobs:
 #Job to build the front-end of the application.
   build-frontend:
