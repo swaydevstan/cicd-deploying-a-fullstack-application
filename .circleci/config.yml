@@ -38,12 +38,13 @@ jobs:
             npm install
             npm run build
       #Integrate slack failure notification
-      # - slack/notify:
-      #     channel: pipeline-alerts
-      #     mentions: '@here'
-      #     event: fail
-      #     template: basic_fail_1
       - slack/notify:
+          channel: pipeline-alerts
+          mentions: '@here'
+          event: fail
+          template: basic_fail_1
+      - slack/notify:
+          channel: pipeline-alerts
           event: pass
           template: success_tagged_deploy_1
       - save_cache:
