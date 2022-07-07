@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs: 
+  slack: circleci/slack@4.10.1
+
 jobs:
 #Job to build the front-end of the application.
   build-frontend:
@@ -34,6 +37,13 @@ jobs:
             cd backend
             npm install
             npm run build
+            exit 1
+      #Integrate slack failure notification
+      - slack/notify:
+          channel: pipeline-alerts
+          mentions: '@here'
+          event: fail
+          template: basic_fail_1
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -112,7 +122,8 @@ workflows:
   my_workflows:
     jobs:
       - build-frontend
-      - build-backend
+      - build-backend:
+          context: SlackContext
       - test-frontend:
           requires:
             - build-frontend
