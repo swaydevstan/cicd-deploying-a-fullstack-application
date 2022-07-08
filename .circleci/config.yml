@@ -37,7 +37,6 @@ jobs:
             cd backend
             npm install
             npm run build
-            exit 1
       #Integrate slack failure notification
       - slack/notify:
           channel: pipeline-alerts
