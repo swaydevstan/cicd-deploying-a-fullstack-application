@@ -132,7 +132,7 @@ jobs:
             npm audit fix --force
             npm audit --audit-level=critical
 
-#Create Infrastructure IAC and Ansible
+#Create Infrastructure IAC  
   deploy-infrastructure:
     docker:
       - image: amazon/aws-cli
@@ -163,12 +163,40 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> ~/project/.circleci/ansible/inventory.txt
+            
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
       #Destroy environment if job fails 
       - destroy-environment
+
+#Configure infrastructure using Ansible
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+
+    steps:
+      - checkout
+      
+      - add_ssh_keys:
+          fingerprints: ["fb:32:9d:12:f7:b4:a3:9f:94:28:ca:45:ee:68:c2:37"] 
+      
+      - attach_workspace: 
+          at: ~/
+     
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible
+
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml
+      # Here's where you will add some code to rollback on failure 
+
         
 
 
