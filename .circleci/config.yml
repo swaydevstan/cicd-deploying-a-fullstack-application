@@ -37,6 +37,7 @@ jobs:
             cd backend
             npm install
             npm run build
+            exit 1
       #Integrate slack failure notification
       - slack/notify:
           channel: pipeline-alerts
@@ -46,7 +47,7 @@ jobs:
       - slack/notify:
           channel: pipeline-alerts
           event: pass
-          template: success_tagged_deploy_1
+          template: basic_success_1
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
