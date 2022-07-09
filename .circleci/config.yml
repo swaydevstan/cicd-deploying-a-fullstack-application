@@ -235,7 +235,7 @@ jobs:
       - run: 
           name: Install Dependencies
           command: |
-            apk add --update tar gzip ansible nodejs curl
+            apk add --update tar gzip ansible nodejs npm curl
             pip3 install awscli 
 
       - run:
@@ -276,7 +276,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update tar gzip ansible nodejs npm openssh
+            apk add --update tar gzip ansible openssh nodejs npm 
             pip3 install awscli 
 
 
