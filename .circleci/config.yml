@@ -5,17 +5,39 @@ orbs:
 
 commands:
   destroy-environment:
-    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-    # parameters:
-    #   # Add parameter here   
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.   
+    parameters:
+      Workflow_ID:
+        type: string
+        default: ${CIRCLE_WORKFLOW_ID:0:7}
     steps:
       - run:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-            aws cloudformation delete-stack --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.Workflow_ID >>
+            aws s3 rm s3://udapeople-<< parameters.Workflow_ID >> --recursive
+            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.Workflow_ID >>
+    
+  revert-migrations:
+    description: Revert the last migration 
+    parameters:
+      workflow_id:
+        default: "${CIRCLE_WORKFLOW_ID:0:7}"
+        type: string     
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            SUCCESS=$(curl --insecure  https://kvdb.io/Vc7GfftkjJcjt992gYHvmh/migration_<< parameters.workflow_id >>)
+            if(( $SUCCESS==1 )); 
+            then
+              cd ~/project/backend
+              npm install
+              npm run migration:revert
+              exit 1
+            fi
 
 jobs:
 #Job to build the front-end of the application.
@@ -232,8 +254,9 @@ jobs:
               then
                   curl https://kvdb.io/Vc7GfftkjJcjt992gYHvmh/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
               fi
-      #Destroy environment if job fails 
+      #Destroy environment and revert migrations if job fails 
       - destroy-environment
+      - revert-migrations
   
 #Deploy App Frontend
   deploy-frontend:
@@ -272,8 +295,9 @@ jobs:
             aws s3 ls
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
-      #Destroy environment if job fails 
+      #Destroy environment and revert migrations if job fails 
       - destroy-environment
+      - revert-migrations
 
 #Deploy App Backend
   deploy-backend:
@@ -298,7 +322,6 @@ jobs:
             apk add --update tar gzip ansible openssh nodejs npm 
             pip3 install awscli 
 
-
       - run:
           name: Deploy backend
           command: |
@@ -316,8 +339,9 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
 
-      #Destroy environment if job fails 
-      - destroy-environment 
+      #Destroy environment and revert migrations if job fails 
+      - destroy-environment
+      - revert-migrations
 
 # Run Smoke tests
   smoke-test:
@@ -363,8 +387,9 @@ jobs:
             else
               exit 1
             fi
-      #Destroy environment if job fails 
-      - destroy-environment 
+      #Destroy environment and revert migrations if job fails 
+      - destroy-environment
+      - revert-migrations
 
 #Workflows for jobs to run
 workflows:
