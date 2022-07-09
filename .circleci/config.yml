@@ -334,18 +334,21 @@ jobs:
       - run:
           name: Get backend url And Run backend smoke tests
           command: |
-          # Fetch and prepare the BACKEND_IP env 
-            export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
-            
-            #smoke test
-            if curl "${API_URL}/api/status" | grep "ok"
-            then
-                return 0
-            else
-                return 1
-            fi
+            # Fetch and prepare the BACKEND_IP env 
+            BACKEND_IP=$(aws --region us-east-1 \
+                ec2 describe-instances \
+                --filters \
+                "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --query 'Reservations[*].Instances[*].[PublicIpAddress]' \
+                --output text)
+              API_URL="http://${BACKEND_IP}:3030"
+              echo "${API_URL}"
+              if curl "${API_URL}/api/status" | grep "ok"
+              then
+                exit 0
+              else
+                exit 1
+              fi
 
       - run:
           name: Frontend smoke test.
