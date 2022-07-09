@@ -163,14 +163,14 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> ~/project/.circleci/ansible/inventory.txt
+            aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> ~/project/.circleci/ansible/inventory.txt
             
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
       #Destroy environment if job fails 
-      # - destroy-environment
+      - destroy-environment
 
 #Configure infrastructure using Ansible
   configure-infrastructure:
@@ -198,7 +198,7 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
       
       #Destroy environment if job fails 
-      # - destroy-environment
+      - destroy-environment
 
 #Initiate migrations
   run-migrations:
@@ -233,7 +233,7 @@ jobs:
                   curl https://kvdb.io/Vc7GfftkjJcjt992gYHvmh/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
               fi
       #Destroy environment if job fails 
-      # - destroy-environment
+      - destroy-environment
   
 #Deploy App Frontend
   deploy-frontend:
@@ -256,7 +256,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -273,7 +273,7 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
       #Destroy environment if job fails 
-      # - destroy-environment
+      - destroy-environment
 
 #Deploy App Backend
   deploy-backend:
@@ -308,16 +308,60 @@ jobs:
             cd ..
             # Zip the directory
             tar -C backend -czvf artifact.tar.gz . 
-            export TYPEORM_MIGRATIONS_DIR=./migrations
-            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
-            export TYPEORM_MIGRATIONS=./migrations/*.ts
+            # export TYPEORM_MIGRATIONS_DIR=./migrations
+            # export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            # export TYPEORM_MIGRATIONS=./migrations/*.ts
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
 
       #Destroy environment if job fails 
-      # - destroy-environment 
+      - destroy-environment 
+
+# Run Smoke tests
+  smoke-test:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+
+      - run:
+          name: Install dependencies
+          command: |
+            yum install -y curl
+        
+      - run:
+          name: Get backend url And Run backend smoke tests
+          command: |
+          # Fetch and prepare the BACKEND_IP env 
+            BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            
+            #smoke test
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+                return 0
+            else
+                return 1
+            fi
+
+      - run:
+          name: Frontend smoke test.
+          command: |
+            #Get Frontend URL and run frontend smoke tests
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+            echo ${URL} 
+            if curl -s ${URL} | grep "Welcome"
+            then
+                # Change this to 0 after the job fails
+              return 1
+            else
+              return 1
+            fi
+      #Destroy environment if job fails 
+      - destroy-environment 
 
 #Workflows for jobs to run
 workflows:
@@ -348,3 +392,5 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
