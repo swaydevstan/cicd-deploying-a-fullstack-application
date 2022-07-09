@@ -225,28 +225,18 @@ jobs:
 #Deploy App Frontend
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.11
+
     steps:
       - checkout
       - attach_workspace: 
           at: ~/
-      - run:
-          name: "Install dependencies [Python]"
-          command: |
-            yum install python3 -y
-      - run:
-          name: "Install dependencies [Ansible]"
-          command: |
-            apk add --update ansible
-
+        
       - run: 
-          name: Install Tar and Gzip
-          command: yum install -y tar gzip
-
-      - run:
-          name: "Install dependencies [node and npm]"
+          name: Install Dependencies
           command: |
-            yum install nodejs -y
+            apk-add --update tar gzip ansible nodejs curl
+            pip3 insall awscli 
 
       - run:
           name: Get backend url
@@ -256,6 +246,7 @@ jobs:
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
+        
       - run:
           name: Deploy frontend objects
           command: |
@@ -272,9 +263,10 @@ jobs:
   deploy-backend:
     docker:
       - image: python:3.7-alpine3.11
-      - image: amazon/aws-cli
+    
     steps:
       - checkout
+
       - add_ssh_keys:
           fingerprints: ["fb:32:9d:12:f7:b4:a3:9f:94:28:ca:45:ee:68:c2:37"] 
       
@@ -284,9 +276,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            yum install -y tar gzip
-            apk add --update ansible
-            yum install nodejs -y
+            apk-add --update tar gzip ansible nodejs npm openssh
+            pip3 insall awscli 
+
 
       - run:
           name: Deploy backend
