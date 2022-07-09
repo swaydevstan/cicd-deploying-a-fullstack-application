@@ -170,7 +170,7 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       #Destroy environment if job fails 
-      - destroy-environment
+      # - destroy-environment
 
 #Configure infrastructure using Ansible
   configure-infrastructure:
@@ -198,7 +198,8 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
       
       #Destroy environment if job fails 
-      - destroy-environment
+      # - destroy-environment
+
 #Initiate migrations
   run-migrations:
     docker:
@@ -232,7 +233,7 @@ jobs:
                   curl https://kvdb.io/Vc7GfftkjJcjt992gYHvmh/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
               fi
       #Destroy environment if job fails 
-      - destroy-environment
+      # - destroy-environment
   
 #Deploy App Frontend
   deploy-frontend:
@@ -272,7 +273,7 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
       #Destroy environment if job fails 
-      - destroy-environment
+      # - destroy-environment
 
 #Deploy App Backend
   deploy-backend:
@@ -313,7 +314,7 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml
 
       #Destroy environment if job fails 
-      - destroy-environment 
+      # - destroy-environment 
 
 #Workflows for jobs to run
 workflows:
