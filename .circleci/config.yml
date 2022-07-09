@@ -213,11 +213,22 @@ jobs:
             npm run migrations > migrations_dump.txt
 
       - run:
+          name: Install dependencies
+          command: |
+            apt-get update -y && apt-get install -y python3 \
+            python3-pip python3-setuptools groff less -y && pip3 install --upgrade pip \
+            && apt-get clean && apt-get install curl
+      
+      - run:
+          name: Install awscli
+          command: |
+            pip3 --no-cache-dir install --upgrade awscli
+      - run:
           name: Send migration results to kvdb
           command: |
               if grep -q "has been executed successfully." ~/project/backend/nmigrations_dump.txt
               then
-                  curl https://kvdb.io/Vc7GfftkjJcjt992gYHvmh/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d 'migration success'
+                  curl https://kvdb.io/Vc7GfftkjJcjt992gYHvmh/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
               fi
       #Destroy environment if job fails 
       - destroy-environment
@@ -225,7 +236,7 @@ jobs:
 #Deploy App Frontend
   deploy-frontend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: circleci/node:13.8.0
 
     steps:
       - checkout
@@ -235,8 +246,8 @@ jobs:
       - run: 
           name: Install Dependencies
           command: |
-            apk add --update tar gzip ansible nodejs npm curl
-            pip3 install awscli 
+            apt-get update && apt-get install -y tar \
+            && apt-get install -y awscli
 
       - run:
           name: Get backend url
