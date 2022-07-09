@@ -3,7 +3,7 @@
 - name: Create Backend App Directory
   become: true
   file:
-    path: ~/backend-app
+    path: ./backend-app
     state: directory
 
 
@@ -11,21 +11,22 @@
   become: true
   copy:
       src: /root/project/artifact.tar.gz
-      dest: ~/backend-app
+      dest: ./backend-app
       owner: ubuntu
       mode: 0777
 
 - name: "Unzip backend files"
   become: true
   shell: |
-    cd ~/backend-app
+    cd ./backend-app
     tar xvzf artifact.tar.gz .
     rm -rf ./artifact.tar.gz
 
 - name: Install dependencies and Start App with PM2
   become: true
   shell: |
-    cd ~/backend-app
+    cd ./backend-app
     npm i
-    # pm2 stop default
-    pm2 start npm --start --name "backend-app"
+    cd /dist
+    pm2 stop default
+    pm2 start main.js
