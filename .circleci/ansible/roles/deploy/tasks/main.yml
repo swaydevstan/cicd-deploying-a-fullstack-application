@@ -5,11 +5,21 @@
     path: ~/backend-app
     state: directory
 
-- name: Extract backend files to backend app directory
+
+- name: "Move backend files to App Directory"
   become: true
-  unarchive:
-    src: artifact.tar.gz
-    dest: ~/backend-app
+  copy:
+      src: /root/project/artifact.tar.gz
+      dest: ~/backend-app
+      owner: ubuntu
+      mode: 0777
+
+- name: "Unzip backend files"
+  become: true
+  shell: |
+    cd ~/backend-app
+    tar xvzf artifact.tar.gz .
+    rm -rf ./artifact.tar.gz
 
 - name: Install dependencies and Start App with PM2
   become: true
