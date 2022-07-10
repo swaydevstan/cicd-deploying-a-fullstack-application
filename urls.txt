@@ -5,12 +5,12 @@ https://github.com/swaydevstan/udacity-udapeople-project
 http://udapeople-8a23d7e.s3-website-us-east-1.amazonaws.com/
 
 [URL03] Public URL for my CloudFront distribution
-http://di4jardsjzzgk.cloudfront.net/
+http://d17e8hrvf67xx2.cloudfront.net/
 
 [URL 04] Public URL for my deployed backend server
-http://ec2-18-209-98-40.compute-1.amazonaws.com:3030/api/status
+http://ec2-34-207-115-231.compute-1.amazonaws.com:3030/api/status
 
 [URL05] Public URL for my prometheus server
-http://ec2-54-92-153-174.compute-1.amazonaws.com:9090/targets
+http://ec2-3-85-133-138.compute-1.amazonaws.com:9090/targets
 
 
