@@ -1,5 +1,4 @@
 # Udacity: Auto-deploying a Web App
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/swaydevstan/udacity-udapeople-project/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/swaydevstan/udacity-udapeople-project/tree/main)
 <br>
 This repository contains solution to the project "Give Your Application Auto-Deploy Superpowers" of my Udacity Cloud DevOps Nanodegree Program
 <p align="left">
